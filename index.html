@@ -3,31 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 도서관 포스터 교육 인포그래픽</title>
-    <!-- React & ReactDOM -->
+    <title>AI로 만드는 우리 도서관 포스터 - 교육 자료</title>
+    
+    <!-- React & ReactDOM (UI 라이브러리) -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Babel for JSX -->
+    
+    <!-- Babel (코드를 브라우저가 이해할 수 있게 변환) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Tailwind CSS -->
+    
+    <!-- Tailwind CSS (디자인) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Phosphor Icons (아이콘 대체) -->
+    
+    <!-- Phosphor Icons (아이콘) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f3f4f6; }
-        .ph { vertical-align: middle; }
-        /* 부드러운 아코디언 애니메이션 */
-        .accordion-content {
-            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
-            max-height: 2000px;
-            opacity: 1;
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8fafc; }
+        
+        /* 아코디언 애니메이션 */
+        .content-wrapper {
+            transition: all 0.3s ease-in-out;
             overflow: hidden;
         }
-        .accordion-content.closed {
+        .content-wrapper.closed {
             max-height: 0;
             opacity: 0;
-            padding: 0 1.5rem; /* p-6에 해당하는 값 제거 */
+            margin-top: 0;
+        }
+        .content-wrapper.open {
+            max-height: 5000px; /* 충분히 큰 값 */
+            opacity: 1;
         }
     </style>
 </head>
@@ -35,462 +42,537 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState } = React;
+        const { useState, useEffect } = React;
 
-        // 아이콘 매핑 (Lucide -> Phosphor Icons Class)
-        const Icons = {
-            BookOpen: "ph-book-open",
-            Monitor: "ph-monitor",
-            Palette: "ph-palette",
-            MessageSquare: "ph-chat-circle-text",
-            Clock: "ph-clock",
-            CheckCircle: "ph-check-circle",
-            Sparkles: "ph-sparkle",
-            LayoutTemplate: "ph-layout",
-            Instagram: "ph-instagram-logo",
-            Share2: "ph-share-network",
-            Zap: "ph-lightning",
-            Download: "ph-download-simple",
-            ChevronDown: "ph-caret-down",
-            ChevronUp: "ph-caret-up",
-            Wand2: "ph-magic-wand",
-            FileText: "ph-file-text",
-            Settings: "ph-gear",
-            Image: "ph-image",
-            HelpCircle: "ph-question",
-            MousePointerClick: "ph-cursor-click"
+        // 아이콘 매핑 컴포넌트
+        const Icon = ({ name, className = "", size = "text-xl" }) => {
+            return <i className={`ph ${name} ${size} ${className}`}></i>;
         };
 
-        const Section = ({ title, time, iconClass, children, color = "blue" }) => {
+        // 메인 섹션 컴포넌트 (접기/펼치기 가능)
+        const Section = ({ title, time, icon, color, children }) => {
             const [isOpen, setIsOpen] = useState(true);
-            
-            const colorClasses = {
-                blue: "bg-blue-50 border-blue-200 text-blue-900",
-                purple: "bg-purple-50 border-purple-200 text-purple-900",
-                green: "bg-green-50 border-green-200 text-green-900",
-                orange: "bg-orange-50 border-orange-200 text-orange-900",
-                indigo: "bg-indigo-50 border-indigo-200 text-indigo-900",
-                red: "bg-red-50 border-red-200 text-red-900",
-            };
 
-            const headerColors = {
-                blue: "bg-blue-600",
-                purple: "bg-purple-600",
-                green: "bg-green-600",
-                orange: "bg-orange-600",
-                indigo: "bg-indigo-600",
-                red: "bg-red-600",
+            const styles = {
+                blue:   { header: "bg-blue-600",   bg: "bg-blue-50",   border: "border-blue-200",   text: "text-blue-900" },
+                indigo: { header: "bg-indigo-600", bg: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-900" },
+                green:  { header: "bg-emerald-600",  bg: "bg-emerald-50",  border: "border-emerald-200",  text: "text-emerald-900" },
+                orange: { header: "bg-orange-500", bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-900" },
+                purple: { header: "bg-purple-600", bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-900" },
+                slate:  { header: "bg-slate-600",  bg: "bg-slate-50",  border: "border-slate-200",  text: "text-slate-900" },
             };
+            
+            const s = styles[color] || styles.blue;
 
             return (
-                <div className={`mb-8 rounded-xl border-2 overflow-hidden shadow-lg transition-all duration-300 ${colorClasses[color].replace('bg-', 'border-opacity-50 ')}`}>
+                <div className={`mb-8 rounded-xl border shadow-lg overflow-hidden ${s.border} bg-white`}>
                     <div 
-                        className={`${headerColors[color]} p-4 text-white flex justify-between items-center cursor-pointer hover:opacity-90 transition-opacity`}
+                        className={`${s.header} text-white p-5 flex justify-between items-center cursor-pointer hover:opacity-90 transition-all`}
                         onClick={() => setIsOpen(!isOpen)}
                     >
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-white bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center">
-                                <i className={`ph ${iconClass} text-2xl`}></i>
+                            <div className="bg-white/20 p-2 rounded-full w-10 h-10 flex items-center justify-center">
+                                <Icon name={icon} size="text-2xl" />
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold">{title}</h2>
-                                {time && <span className="text-sm opacity-90 flex items-center gap-1"><i className="ph ph-clock"></i> {time}</span>}
+                                <h2 className="text-xl font-bold flex items-center gap-2">{title}</h2>
+                                {time && <span className="text-sm opacity-90 flex items-center gap-1"><Icon name="ph-clock" size="text-sm" /> {time}</span>}
                             </div>
                         </div>
-                        <i className={`ph ${isOpen ? Icons.ChevronUp : Icons.ChevronDown} text-xl`}></i>
+                        <Icon name={isOpen ? "ph-caret-up" : "ph-caret-down"} size="text-2xl" />
                     </div>
-                    
-                    <div className={`accordion-content ${isOpen ? '' : 'closed'} ${colorClasses[color]} p-6`}>
+                    <div className={`content-wrapper ${isOpen ? 'open' : 'closed'} ${s.bg} p-6`}>
                         {children}
                     </div>
                 </div>
             );
         };
 
+        // 서브 파트 컴포넌트
         const SubPart = ({ number, title, children }) => (
-            <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-200 mb-4 last:mb-0">
-                <h3 className="font-bold text-gray-800 mb-3 text-lg border-b pb-2 flex items-center gap-2">
-                    <span className="bg-gray-800 text-white text-xs px-2 py-1 rounded">{number}</span>
-                    {title}
-                </h3>
-                <div className="text-gray-700 text-sm space-y-2">
+            <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-200 mb-6 last:mb-0">
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
+                    <span className="bg-gray-800 text-white text-xs px-2 py-1 rounded font-bold font-mono">{number}</span>
+                    <h3 className="font-bold text-lg text-gray-800">{title}</h3>
+                </div>
+                <div className="text-gray-700 leading-relaxed space-y-3 text-sm md:text-base">
                     {children}
                 </div>
             </div>
         );
 
-        const StepList = ({ steps }) => (
-            <ol className="list-decimal list-inside space-y-1 ml-1 text-gray-600">
-                {steps.map((step, idx) => (
-                    <li key={idx} dangerouslySetInnerHTML={{__html: step}} />
-                ))}
-            </ol>
-        );
-
-        const PromptFormula = () => (
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-xl text-white shadow-xl my-6">
-                <h3 className="text-center font-bold text-xl mb-4 flex items-center justify-center gap-2">
-                    <i className="ph ph-sparkle text-yellow-300"></i> 프롬프트 황금 공식
-                </h3>
-                <div className="flex flex-wrap justify-center gap-2 text-sm md:text-base font-bold">
-                    {['스타일', '주요 대상', '행동', '배경', '분위기', '색상'].map((item, idx) => (
-                        <div key={idx} className="flex items-center">
-                            <span className="bg-white text-indigo-700 px-3 py-1 rounded-full shadow-md">{item}</span>
-                            {idx !== 5 && <span className="mx-1 text-white opacity-70">+</span>}
-                        </div>
-                    ))}
-                </div>
-                <div className="mt-4 bg-white bg-opacity-10 p-4 rounded-lg text-sm">
-                    <p className="opacity-80 mb-1 text-xs uppercase tracking-wider">Bad Example</p>
-                    <p className="mb-3 text-red-200">❌ "도서관 포스터 그려줘"</p>
-                    <p className="opacity-80 mb-1 text-xs uppercase tracking-wider">Good Example</p>
-                    <p className="text-green-200">⭕ "밝은 수채화 스타일로 + 초등학생 3명이 도서관에서 즐겁게 책을 읽는 모습 + 큰 창문으로 여름 햇살이 들어오는 아늑한 공간 + 파스텔톤 색상"</p>
+        // 팁 박스
+        const TipBox = ({ children }) => (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r text-sm my-3">
+                <div className="flex items-start gap-2">
+                    <Icon name="ph-lightbulb" className="text-yellow-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-gray-700">{children}</div>
                 </div>
             </div>
         );
 
-        const ChecklistItem = ({ text, checked = true }) => (
-            <div className="flex items-start gap-2 mb-2">
-                {checked ? 
-                    <i className="ph ph-check-circle text-green-500 mt-1 text-lg flex-shrink-0"></i> : 
-                    <div className="w-4 h-4 border-2 border-gray-300 rounded-full mt-1 flex-shrink-0"></div>
-                }
-                <span className="text-gray-700">{text}</span>
-            </div>
-        );
+        // 강조 박스
+        const HighlightBox = ({ title, children, color = "blue" }) => {
+             const colors = {
+                blue: "bg-blue-50 border-blue-100 text-blue-800",
+                green: "bg-green-50 border-green-100 text-green-800",
+                red: "bg-red-50 border-red-100 text-red-800",
+             };
+             const c = colors[color];
+             return (
+                <div className={`${c} border rounded-lg p-4 my-2 text-sm`}>
+                    {title && <strong className="block mb-1">{title}</strong>}
+                    {children}
+                </div>
+             );
+        };
 
+        // 메인 앱 컴포넌트
         function App() {
             return (
-                <div className="min-h-screen pb-20">
-                    {/* Header */}
-                    <header className="bg-gradient-to-r from-blue-800 to-indigo-800 text-white p-10 text-center shadow-xl sticky top-0 z-10">
-                        <div className="max-w-5xl mx-auto">
-                            <div className="inline-block bg-blue-600 px-3 py-1 rounded-full text-xs font-bold mb-2 uppercase tracking-wide">
-                                지역 커뮤니티 맞춤형
+                <div className="pb-20">
+                    {/* 헤더 */}
+                    <header className="bg-gradient-to-r from-indigo-900 to-blue-800 text-white py-12 px-4 text-center shadow-2xl relative overflow-hidden">
+                        <div className="max-w-4xl mx-auto relative z-10">
+                            <div className="inline-block bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-1 rounded-full text-sm font-bold mb-4 text-blue-100">
+                                지역 커뮤니티 맞춤형 포스터 제작 마스터 과정
                             </div>
-                            <h1 className="text-2xl md:text-4xl font-extrabold mb-2">
-                                🎨 AI로 만드는 우리 도서관 포스터
+                            <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight drop-shadow-lg">
+                                🎨 AI로 만드는<br/>우리 도서관 포스터
                             </h1>
-                            <p className="text-blue-200 text-sm md:text-base">
-                                초보자를 위한 4시간 완성 실습 교육 마스터 과정
+                            <p className="text-xl text-blue-100 font-light max-w-2xl mx-auto">
+                                초보자를 위한 4시간 완성 실습 교육
                             </p>
+                        </div>
+                        {/* 배경 장식 */}
+                        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                            <Icon name="ph-paint-brush-broad" className="absolute top-10 left-10 text-9xl" />
+                            <Icon name="ph-book-open" className="absolute bottom-10 right-10 text-9xl" />
                         </div>
                     </header>
 
-                    <main className="max-w-4xl mx-auto p-4 -mt-6 relative z-20">
+                    <main className="max-w-4xl mx-auto px-4 -mt-8 relative z-20">
                         
-                        {/* Overview */}
-                        <div className="bg-white rounded-xl p-6 shadow-lg mb-8 border-l-4 border-blue-500">
-                            <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-blue-800">
-                                <i className={`ph ${Icons.BookOpen} text-xl`}></i> 교육 개요
-                            </h3>
-                            <div className="grid md:grid-cols-2 gap-6">
+                        {/* 0. 교육 개요 */}
+                        <div className="bg-white rounded-xl p-8 shadow-xl border-t-4 border-indigo-500 mb-8">
+                            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                                <Icon name="ph-graduation-cap" className="text-indigo-600" /> 교육 개요
+                            </h2>
+                            
+                            <div className="grid md:grid-cols-2 gap-8">
                                 <div>
-                                    <h4 className="font-bold text-sm text-gray-500 mb-2 uppercase">교육 목표</h4>
-                                    <p className="font-medium text-gray-800 mb-2">"디자인 경험이 없어도 4시간 후 멋진 포스터 완성"</p>
-                                    <div className="space-y-1 text-sm text-gray-600">
-                                        <ChecklistItem text="도서관 행사 포스터 10분 제작" />
-                                        <ChecklistItem text="SNS용 이미지 동시 제작" />
-                                        <ChecklistItem text="디자인 비용 절감" />
-                                    </div>
+                                    <h3 className="font-bold text-gray-900 mb-2 border-l-4 border-blue-500 pl-2">교육 목표</h3>
+                                    <p className="italic text-gray-600 mb-4 bg-gray-50 p-3 rounded">
+                                        "디자인 경험이 전혀 없어도, 4시간 후에는 우리 도서관만의 멋진 포스터를 만들 수 있습니다!"
+                                    </p>
+                                    <h4 className="font-bold text-sm text-gray-500 mb-2">이 교육을 마치면</h4>
+                                    <ul className="space-y-2 text-sm text-gray-700">
+                                        <li className="flex items-start gap-2"><Icon name="ph-check-circle" className="text-green-500 mt-0.5" /> 도서관 행사 포스터를 10분 만에 제작</li>
+                                        <li className="flex items-start gap-2"><Icon name="ph-check-circle" className="text-green-500 mt-0.5" /> 지역 주민들의 눈길을 사로잡는 디자인 완성</li>
+                                        <li className="flex items-start gap-2"><Icon name="ph-check-circle" className="text-green-500 mt-0.5" /> SNS용 이미지도 동시에 제작</li>
+                                        <li className="flex items-start gap-2"><Icon name="ph-check-circle" className="text-green-500 mt-0.5" /> 디자인 비용 연간 수백만원 절감</li>
+                                    </ul>
                                 </div>
-                                <div>
-                                    <h4 className="font-bold text-sm text-gray-500 mb-2 uppercase">준비물</h4>
-                                    <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                                        <li>노트북/PC 및 인터넷 연결</li>
-                                        <li>구글 계정 (무료)</li>
-                                        <li>행사 계획서나 홍보 자료 (PDF/TXT)</li>
+                                <div className="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                                    <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                        <Icon name="ph-toolbox" /> 준비물
+                                    </h3>
+                                    <ul className="space-y-2 text-sm text-gray-700">
+                                        <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div>노트북 또는 데스크톱 컴퓨터</li>
+                                        <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div>인터넷 연결</li>
+                                        <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div>구글 계정 (무료)</li>
+                                        <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div>도서관 행사 계획서나 홍보 자료</li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
 
                         {/* Part 1 */}
-                        <Section title="Part 1: AI 도구 준비하기" time="30분" iconClass={Icons.Monitor} color="blue">
-                            <SubPart number="1-1" title="구글 계정 만들기">
-                                <p className="mb-2">이미 계정이 있다면 건너뛰셔도 됩니다.</p>
-                                <StepList steps={[
-                                    "google.com 접속 > 계정 만들기 클릭",
-                                    "정보 입력 (이름, 사용자명, 비밀번호)",
-                                    "전화번호 인증 및 완료"
-                                ]} />
-                                <p className="text-xs text-blue-600 mt-2 bg-blue-50 p-2 rounded">💡 팁: 도서관 공식 이메일로 만들면 관리가 편해요!</p>
+                        <Section title="Part 1: AI 도구 준비하기" time="30분" icon="ph-wrench" color="blue">
+                            <SubPart number="1-1" title="구글 계정 만들기 (이미 있으신 분은 건너뛰세요)">
+                                <div className="pl-4 border-l-2 border-gray-200">
+                                    <strong className="text-blue-600 block mb-1">단계별 따라하기:</strong>
+                                    <ol className="list-decimal list-inside space-y-1 mb-3 text-gray-600">
+                                        <li>웹브라우저 열기 (크롬, 엣지, 사파리 등)</li>
+                                        <li>주소창에 <code>google.com</code> 입력</li>
+                                        <li>[계정 만들기] 클릭</li>
+                                    </ol>
+                                    <strong className="text-blue-600 block mb-1">정보 입력하기:</strong>
+                                    <ul className="list-disc list-inside space-y-1 mb-3 text-gray-600">
+                                        <li>이름/성 (예: 김/도서관)</li>
+                                        <li>사용자 이름 (예: gwangmyeong_library)</li>
+                                        <li>비밀번호 (8자 이상, 숫자/특수문자 포함)</li>
+                                        <li>휴대폰 번호 인증</li>
+                                    </ul>
+                                </div>
+                                <TipBox>도서관 공식 이메일로 만드시면 나중에 관리가 편해요!</TipBox>
                             </SubPart>
 
                             <SubPart number="1-2" title="NotebookLM 시작하기">
-                                <p className="mb-2 font-medium">"우리 도서관 자료를 읽고 이해하는 AI 비서"</p>
-                                <div className="bg-gray-50 p-3 rounded mb-2">
-                                    <h5 className="font-bold text-xs text-gray-500 mb-1">실습 프로세스</h5>
-                                    <StepList steps={[
-                                        "notebooklm.google.com 접속",
-                                        "새 노트북 만들기 클릭 (이름: '우리 도서관 홍보 자료')",
-                                        "소스 추가(📎) > 파일 업로드 (PDF, TXT 등)",
-                                        "업로드 완료 확인 (최대 20개 파일)"
-                                    ]} />
+                                <p className="mb-3 font-medium text-indigo-600">"우리 도서관의 모든 자료를 읽고 이해하는 똑똑한 AI 비서"</p>
+                                
+                                <div className="space-y-4">
+                                    <div>
+                                        <h4 className="font-bold text-gray-800 mb-1">1. 접속 및 노트북 생성</h4>
+                                        <ul className="list-none pl-0 space-y-1 text-gray-600">
+                                            <li>👉 <code>notebooklm.google.com</code> 접속</li>
+                                            <li>👉 [➕ 새 노트북] 클릭 → 이름 입력: "우리 도서관 홍보 자료"</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 className="font-bold text-gray-800 mb-1">2. 실습: 도서관 자료 업로드하기</h4>
+                                        <p className="text-sm mb-2">화면 중앙의 "소스 추가" 또는 📎 아이콘 클릭</p>
+                                        <div className="bg-white border p-3 rounded text-sm">
+                                            <strong className="block mb-1 text-gray-700">업로드 예시 자료:</strong>
+                                            <ul className="space-y-1 text-gray-600">
+                                                <li>📄 2025년 여름방학 독서교실 계획서.pdf</li>
+                                                <li>📄 작년 행사 참가자 후기.txt</li>
+                                                <li>📄 광명시 도서관 이용 통계.pdf</li>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </div>
+                                <TipBox>
+                                    초보자 팁: 한 번에 최대 20개 파일까지 업로드 가능 / 파일당 50MB 이하 권장
+                                </TipBox>
                             </SubPart>
 
                             <SubPart number="1-3" title="Gemini 설정하기">
-                                <p className="mb-2 font-medium">"AI들의 지휘자, 총괄 매니저"</p>
-                                <StepList steps={[
-                                    "gemini.google.com 접속",
-                                    "설정(⚙️) > 언어: 한국어 / 응답 길이: 상세함",
-                                    "첫 대화 시도: '안녕하세요! 도서관 홍보 포스터를 만들고 싶어요.'"
-                                ]} />
+                                <p className="mb-3 font-medium text-indigo-600">"AI들의 지휘자! 다른 AI들에게 명령을 내리는 총괄 매니저"</p>
+                                <ul className="space-y-2 text-gray-600">
+                                    <li>1. <code>gemini.google.com</code> 접속</li>
+                                    <li>2. 우측 상단 ⚙️ 설정 클릭 → <strong>언어: 한국어 / 응답 길이: 상세함</strong></li>
+                                    <li className="bg-gray-100 p-2 rounded">
+                                        <strong>연습 입력:</strong> "안녕하세요! 저는 광명시 작은 도서관 관장입니다. 도서관 홍보 포스터를 만들고 싶어요."
+                                    </li>
+                                </ul>
                             </SubPart>
 
-                            <SubPart number="1-4" title="Nano Banana (이미지 생성) 준비">
-                                <p className="mb-2 font-medium">"말로 설명하면 그림을 그려주는 AI 화가"</p>
-                                <StepList steps={[
-                                    "Gemini 채팅창에 바로 입력",
-                                    "예시: '수채화 스타일로 도서관에서 책 읽는 아이들 그림 그려줘'",
-                                    "10-20초 후 4개 버전 이미지 확인"
-                                ]} />
+                            <SubPart number="1-4" title="Nano Banana 준비하기">
+                                <p className="mb-3 font-medium text-indigo-600">"그림 그리는 AI 화가! 말로 설명하면 그림을 그려줍니다."</p>
+                                <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded border border-purple-100">
+                                    <strong className="block mb-2 text-purple-800">Gemini 안에서 바로 사용하기 실습:</strong>
+                                    <p className="mb-2 text-gray-700">채팅창에 다음을 입력해보세요:</p>
+                                    <code className="block bg-white p-2 rounded border border-purple-200 text-purple-700 mb-2">
+                                        "수채화 스타일로 도서관에서 책 읽는 아이들 그림 그려줘"
+                                    </code>
+                                    <p className="text-xs text-gray-500">→ 10~20초 후 4개의 이미지가 생성됩니다.</p>
+                                </div>
                             </SubPart>
                         </Section>
 
                         {/* Part 2 */}
-                        <Section title="Part 2: AI와 대화하는 방법 배우기" time="1시간" iconClass={Icons.MessageSquare} color="indigo">
+                        <Section title="Part 2: AI와 대화하는 방법 배우기" time="1시간" icon="ph-chat-circle-text" color="indigo">
                             <SubPart number="2-1" title="NotebookLM으로 홍보 전략 만들기">
-                                <div className="mb-3">
-                                    <span className="font-bold text-indigo-600">Q. 질문 예시</span>
-                                    <ul className="list-disc list-inside text-sm bg-indigo-50 p-3 rounded mt-1">
-                                        <li>"우리 도서관 인기 프로그램 3가지는?"</li>
-                                        <li>"30-40대 학부모가 관심 가질 포인트는?"</li>
-                                        <li>"여름방학 프로그램 홍보 문구 10개 만들어줘"</li>
+                                <p className="mb-3"><strong>목표:</strong> 우리 도서관만의 특별한 홍보 포인트 찾기</p>
+                                <div className="bg-indigo-50 p-4 rounded mb-4">
+                                    <strong className="text-indigo-800 block mb-2">💬 질문 예시 (따라해 보세요)</strong>
+                                    <ul className="space-y-2 text-sm text-gray-700">
+                                        <li className="bg-white p-2 rounded border border-indigo-100">1. "우리 도서관에서 가장 인기 있었던 프로그램 3가지는?"</li>
+                                        <li className="bg-white p-2 rounded border border-indigo-100">2. "30-40대 학부모들이 관심있어 할 만한 포인트는?"</li>
+                                        <li className="bg-white p-2 rounded border border-indigo-100">3. "여름방학 프로그램 홍보 문구 10개 만들어줘"</li>
                                     </ul>
                                 </div>
-                                <div className="text-xs text-gray-500">
-                                    💡 꿀팁: 구체적으로 질문하기 (예: "좋은 문구" ❌ → "30대 엄마들이 좋아할 문구 5개" ⭕)
+                                
+                                <div className="space-y-2 text-sm border-t pt-3">
+                                    <strong className="block text-gray-800">NotebookLM 답변 활용 예시:</strong>
+                                    <ul className="list-disc list-inside text-gray-600 pl-2">
+                                        <li>소규모 정원(10명)으로 개별 지도 가능</li>
+                                        <li>지역 작가와의 만남 프로그램 포함</li>
+                                        <li>참가비 무료, 도서 증정 혜택</li>
+                                    </ul>
+                                    <p className="text-gray-500 mt-2">→ 이 내용으로 후속 질문: "이 장점들을 강조해서 부모님 마음을 움직일 홍보 문구를 만들어줘!"</p>
                                 </div>
+                                <TipBox>
+                                    질문은 구체적으로! ("좋은 문구" ❌ → "30대 엄마들이 좋아할 문구 5개" ⭕)
+                                </TipBox>
                             </SubPart>
 
                             <SubPart number="2-2" title="Gemini로 디자인 컨셉 정하기">
-                                <p className="mb-2">NotebookLM의 분석 내용을 Gemini에게 전달하여 시각적 컨셉 도출</p>
-                                <div className="bg-gray-50 p-3 rounded text-sm border-l-4 border-indigo-400">
-                                    <p className="font-bold mb-1">Gemini 답변 예시 (컨셉 제안)</p>
-                                    <ul className="space-y-1">
-                                        <li>🎨 <strong>색상:</strong> 시원한 하늘색(#87CEEB) + 노란색 포인트</li>
-                                        <li>✨ <strong>분위기:</strong> 여름의 상쾌함 + 아이들의 밝은 웃음</li>
-                                        <li>🖼️ <strong>요소:</strong> 책 든 아이들, 여름 나무, 도서관 실루엣</li>
+                                <p className="mb-3">NotebookLM에서 분석한 내용을 Gemini에게 복사+붙여넣기 하여 디자인을 요청합니다.</p>
+                                <div className="border rounded-lg p-4 bg-gray-50">
+                                    <strong className="block text-gray-700 mb-2">💬 Gemini 입력 예시:</strong>
+                                    <p className="text-sm text-gray-600 bg-white p-3 rounded border mb-3">
+                                        "우리 도서관 여름방학 프로그램 특징은: 소규모 정원, 지역 작가 만남, 무료 참가야.<br/>
+                                        이걸 표현할 포스터 디자인 컨셉(색상, 분위기, 요소)을 제안해줘."
+                                    </p>
+                                    <strong className="block text-gray-700 mb-2">🎨 Gemini 답변 예시:</strong>
+                                    <ul className="text-sm space-y-1 text-gray-600">
+                                        <li>• <strong>색상:</strong> 시원한 하늘색(#87CEEB) + 따뜻한 노란색 포인트</li>
+                                        <li>• <strong>분위기:</strong> 여름의 상쾌함 + 책 읽는 즐거움</li>
+                                        <li>• <strong>요소:</strong> 책 들고 있는 아이들, 여름 나무, 도서관 실루엣</li>
                                     </ul>
                                 </div>
                             </SubPart>
 
                             <SubPart number="2-3" title="프롬프트 작성법 마스터하기">
-                                <p className="mb-2 font-medium">"AI에게 내리는 정확한 그림 주문서"</p>
-                                <PromptFormula />
-                                <div className="mt-4">
-                                    <h5 className="font-bold text-sm mb-2">단계별 프롬프트 빌드업 실습</h5>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex gap-2 items-center">
-                                            <span className="bg-gray-200 px-2 py-1 rounded text-xs">1단계</span>
-                                            <span>"아이들이 책 읽는 모습" (기본)</span>
+                                <p className="mb-4 font-bold text-center text-lg text-indigo-700">"AI에게 내리는 그림 주문서"</p>
+                                
+                                {/* 황금 공식 카드 */}
+                                <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl p-6 text-white shadow-lg mb-6 transform hover:scale-[1.01] transition-transform">
+                                    <h4 className="text-center font-bold text-xl mb-4 flex items-center justify-center gap-2">
+                                        <Icon name="ph-sparkle" className="text-yellow-300" /> 프롬프트 황금 공식
+                                    </h4>
+                                    <div className="flex flex-wrap justify-center gap-2 text-sm md:text-base font-bold mb-4">
+                                        {['스타일', '주요 대상', '행동', '배경', '분위기', '색상'].map((item, idx) => (
+                                            <div key={idx} className="flex items-center">
+                                                <span className="bg-white/20 px-3 py-1 rounded-full border border-white/40">{item}</span>
+                                                {idx !== 5 && <span className="mx-1 opacity-60">+</span>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="grid md:grid-cols-2 gap-4 text-sm">
+                                        <div className="bg-red-500/20 p-3 rounded border border-red-400/30">
+                                            <strong className="block text-red-200 mb-1">❌ 나쁜 예 (Bad)</strong>
+                                            "도서관 포스터 그려줘"
                                         </div>
-                                        <div className="flex gap-2 items-center">
-                                            <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs">2단계</span>
-                                            <span>"<strong>수채화 스타일</strong>로..." (스타일 추가)</span>
-                                        </div>
-                                        <div className="flex gap-2 items-center">
-                                            <span className="bg-indigo-200 text-indigo-800 px-2 py-1 rounded text-xs">3단계</span>
-                                            <span>"...<strong>7-10살 아이들 3명</strong>이..." (구체적 설명)</span>
-                                        </div>
-                                        <div className="flex gap-2 items-center">
-                                            <span className="bg-indigo-600 text-white px-2 py-1 rounded text-xs">완성</span>
-                                            <span>"...<strong>따뜻한 햇살, 파스텔 톤</strong>" (배경/분위기/색상)</span>
+                                        <div className="bg-emerald-500/20 p-3 rounded border border-emerald-400/30">
+                                            <strong className="block text-emerald-200 mb-1">⭕ 좋은 예 (Good)</strong>
+                                            "밝은 수채화 스타일로, 초등학생 3명이 도서관 창가에서 책을 읽는 모습, 파스텔톤 색상, 따뜻한 분위기"
                                         </div>
                                     </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <h4 className="font-bold text-gray-800">단계별 빌드업 실습:</h4>
+                                    <ol className="list-decimal list-inside text-sm text-gray-600 space-y-2 pl-2">
+                                        <li><strong>뼈대:</strong> "아이들이 책 읽는 모습"</li>
+                                        <li><strong>스타일:</strong> "<u>수채화 스타일로</u> 아이들이 책 읽는 모습"</li>
+                                        <li><strong>구체화:</strong> "수채화 스타일로 <u>7-10살 아이들 3명이 동그랗게 모여 앉아</u>..."</li>
+                                        <li><strong>완성:</strong> "...<u>도서관의 아늑한 독서 공간, 여름 오후의 햇살, 파스텔 블루와 옐로우 톤</u>"</li>
+                                    </ol>
                                 </div>
                             </SubPart>
                         </Section>
 
                         {/* Part 3 */}
-                        <Section title="Part 3: 실제 포스터 만들기" time="1시간 30분" iconClass={Icons.Palette} color="green">
+                        <Section title="Part 3: 실제 포스터 만들기" time="1시간 30분" icon="ph-palette" color="green">
                             <SubPart number="3-1" title="첫 번째 이미지 생성하기">
-                                <p className="mb-2">Gemini에 프롬프트 입력 후 이미지 생성</p>
-                                <div className="bg-green-50 border border-green-200 p-3 rounded mb-3">
-                                    <span className="font-bold text-green-800 text-xs block mb-1">수정 요청 팁 (마음에 안 들 때)</span>
-                                    <ul className="list-disc list-inside text-sm">
-                                        <li>"2번 이미지가 좋은데, 아이들 나이를 7살로 낮춰줘"</li>
-                                        <li>"같은 구도인데 만화 스타일로 바꿔줘"</li>
+                                <div className="mb-4">
+                                    <strong className="block mb-2">Step 1: Gemini에서 이미지 생성</strong>
+                                    <div className="bg-gray-100 p-3 rounded text-sm font-mono text-gray-700 border-l-4 border-green-500">
+                                        "친근한 일러스트 스타일,<br/>
+                                        도서관에서 책을 읽는 초등학생 4명,<br/>
+                                        원형 테이블, 배경엔 책장과 큰 창문,<br/>
+                                        창문 밖 여름 나무,<br/>
+                                        하늘색과 연두색의 시원한 색감,<br/>
+                                        집중하면서도 즐거운 표정"
+                                    </div>
+                                </div>
+                                <div>
+                                    <strong className="block mb-2">Step 2: 이미지가 마음에 안 들 때 (수정 요청법)</strong>
+                                    <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                                        <li>"2번 이미지가 좋은데, 아이들 나이를 더 어리게(7-8살) 수정해줘"</li>
+                                        <li>"같은 구도인데 스타일을 바꿔줘 (만화 스타일 / 크레파스 스타일)"</li>
                                     </ul>
                                 </div>
                             </SubPart>
 
                             <SubPart number="3-2" title="포스터 레이아웃 구성하기">
-                                <div className="grid grid-cols-2 gap-4 mb-3">
-                                    <div>
-                                        <h5 className="font-bold text-sm mb-1">필수 포함 요소</h5>
-                                        <ul className="text-xs space-y-1 text-gray-600">
-                                            <li>✅ 메인 이미지</li>
-                                            <li>✅ 제목 & 부제목</li>
-                                            <li>✅ 일시 & 장소</li>
-                                            <li>✅ 대상 & 인원</li>
-                                            <li>✅ 신청 방법 & 문의처</li>
-                                        </ul>
+                                <p className="mb-3 text-sm text-gray-600">
+                                    <strong>필수 요소 체크리스트:</strong> ✅ 메인 이미지 ✅ 제목 ✅ 일시/장소 ✅ 대상/인원 ✅ 신청방법 ✅ 문의번호 ✅ 로고
+                                </p>
+                                <div className="bg-green-50 p-4 rounded border border-green-100">
+                                    <strong className="text-green-800 block mb-2">Gemini에게 포스터 완성 요청하기:</strong>
+                                    <p className="text-sm text-gray-700 mb-2">
+                                        "방금 만든 이미지를 배경으로 포스터를 만들어줘. 다음 정보를 넣어서:"
+                                    </p>
+                                    <div className="bg-white p-3 rounded text-xs text-gray-600 mb-2">
+                                        【제목】 2025 여름방학 독서교실 "책과 함께하는 시원한 여름"<br/>
+                                        【정보】 7/22~8/2, 오전 10시, 초등 3-4학년 10명<br/>
+                                        【신청】 7/1부터 방문접수 (02-1234-5678)
                                     </div>
-                                    <div>
-                                        <h5 className="font-bold text-sm mb-1">Gemini 요청 예시</h5>
-                                        <p className="text-xs text-gray-600 bg-white p-2 rounded border">
-                                            "방금 만든 이미지를 포스터로 만들어줘. 제목은 상단에 크게, 텍스트 색상은 이미지와 어울리는 파란색으로 통일해줘."
-                                        </p>
-                                    </div>
+                                    <p className="text-sm text-gray-700">
+                                        "제목은 상단에 크게, 중요 정보는 하단에, 색상은 이미지와 어울리는 파란색 톤으로 통일해줘."
+                                    </p>
                                 </div>
                             </SubPart>
 
                             <SubPart number="3-3" title="SNS용 이미지 변환하기">
-                                <div className="flex gap-2 mb-2">
-                                    <div className="flex-1 bg-pink-50 p-2 rounded text-center border border-pink-100">
-                                        <i className={`ph ${Icons.Instagram} mx-auto mb-1 text-pink-600 text-lg`}></i>
-                                        <span className="text-xs font-bold block">인스타 피드</span>
-                                        <span className="text-xs text-gray-500">정사각형 (1:1)</span>
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div className="border p-3 rounded text-center bg-gray-50">
+                                        <Icon name="ph-instagram-logo" className="text-pink-600 text-2xl mb-1 block mx-auto" />
+                                        <strong className="block text-sm">인스타 피드 (1:1)</strong>
+                                        <span className="text-xs text-gray-500">정사각형</span>
                                     </div>
-                                    <div className="flex-1 bg-purple-50 p-2 rounded text-center border border-purple-100">
-                                        <i className={`ph ${Icons.Instagram} mx-auto mb-1 text-purple-600 text-lg`}></i>
-                                        <span className="text-xs font-bold block">스토리</span>
-                                        <span className="text-xs text-gray-500">세로형 (9:16)</span>
+                                    <div className="border p-3 rounded text-center bg-gray-50">
+                                        <Icon name="ph-instagram-logo" className="text-purple-600 text-2xl mb-1 block mx-auto" />
+                                        <strong className="block text-sm">인스타 스토리 (9:16)</strong>
+                                        <span className="text-xs text-gray-500">세로형 + 스와이프 유도</span>
                                     </div>
                                 </div>
-                                <p className="text-sm">Gemini에게 "인스타 스토리용 9:16 비율로 바꿔줘, 스와이프 유도 문구 추가해줘"라고 요청하세요.</p>
+                                <p className="text-sm text-gray-600">
+                                    Gemini에게: "방금 만든 포스터를 인스타 스토리용 9:16 비율로 바꿔줘. '자세한 내용은 프로필 링크' 문구 추가해줘."
+                                </p>
                             </SubPart>
 
-                            <SubPart number="3-4" title="다양한 스타일 시도하기">
-                                <div className="grid grid-cols-3 gap-2 text-center text-xs font-medium text-gray-600">
-                                    <div className="p-2 bg-gray-50 rounded">수채화</div>
-                                    <div className="p-2 bg-gray-50 rounded">일러스트</div>
-                                    <div className="p-2 bg-gray-50 rounded">크레용</div>
-                                    <div className="p-2 bg-gray-50 rounded">파스텔</div>
-                                    <div className="p-2 bg-gray-50 rounded">만화(웹툰)</div>
-                                    <div className="p-2 bg-gray-50 rounded">미니멀</div>
+                            <SubPart number="3-4" title="다양한 스타일 시도하기 (Nano Banana 6가지)">
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                                    <HighlightBox title="수채화" color="blue">부드러운 터치, 번짐 효과</HighlightBox>
+                                    <HighlightBox title="일러스트" color="green">깔끔한 벡터, 단순한 도형</HighlightBox>
+                                    <HighlightBox title="크레용" color="orange">아이 그림 같은 따뜻함</HighlightBox>
+                                    <HighlightBox title="파스텔" color="blue">몽환적 분위기</HighlightBox>
+                                    <HighlightBox title="만화 (웹툰)" color="red">선명한 윤곽선</HighlightBox>
+                                    <HighlightBox title="미니멀" color="green">여백의 미, 모던함</HighlightBox>
                                 </div>
-                                <p className="mt-2 text-sm">같은 프롬프트 뒤에 스타일 키워드만 바꿔서 다시 요청해보세요!</p>
+                                <p className="mt-3 text-sm text-center text-gray-600">
+                                    같은 내용(프롬프트) 뒤에 스타일 키워드만 바꿔서 다시 생성해보세요!
+                                </p>
                             </SubPart>
                         </Section>
 
                         {/* Part 4 */}
-                        <Section title="Part 4: 심화 활용법" time="1시간" iconClass={Icons.Share2} color="orange">
+                        <Section title="Part 4: 심화 활용법" time="1시간" icon="ph-rocket-launch" color="orange">
                             <SubPart number="4-1" title="시리즈 포스터 만들기">
-                                <p className="mb-2">4주 프로그램 등 연속성 있는 홍보물 제작</p>
-                                <div className="bg-orange-50 p-3 rounded text-sm">
-                                    <p className="font-bold mb-1">전략: 템플릿 통일 + 테마 색상 변경</p>
-                                    <ul className="grid grid-cols-2 gap-2 text-xs">
-                                        <li>🌊 1주차: 파란색 (바다)</li>
-                                        <li>🌲 2주차: 초록색 (숲)</li>
-                                        <li>🌻 3주차: 노란색 (해바라기)</li>
-                                        <li>🌌 4주차: 보라색 (우주)</li>
-                                    </ul>
+                                <p className="mb-2 font-medium">통일감 있는 주간 행사 홍보물 제작</p>
+                                <div className="bg-white border border-orange-200 p-4 rounded shadow-sm">
+                                    <strong className="block text-orange-800 mb-2">전략: 템플릿 유지 + 테마 색상 변경</strong>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-center text-xs">
+                                        <div className="p-2 bg-blue-100 text-blue-800 rounded">1주차: 바다 (파랑)<br/>🌊 파도, 물고기</div>
+                                        <div className="p-2 bg-green-100 text-green-800 rounded">2주차: 숲 (초록)<br/>🌲 나무, 캠핑</div>
+                                        <div className="p-2 bg-yellow-100 text-yellow-800 rounded">3주차: 해바라기 (노랑)<br/>🌻 햇살, 꽃</div>
+                                        <div className="p-2 bg-purple-100 text-purple-800 rounded">4주차: 우주 (보라)<br/>🌌 별, 로켓</div>
+                                    </div>
                                 </div>
                             </SubPart>
 
-                            <SubPart number="4-2" title="NotebookLM 고급 활용 (데이터 기반)">
-                                <p className="mb-2">작년 후기 데이터 분석 → 포스터 문구(Copy) 도출</p>
-                                <div className="text-sm bg-white border p-3 rounded">
-                                    <p className="text-gray-500 text-xs mb-1">NotebookLM 분석 결과 예시</p>
-                                    <p className="font-bold text-gray-700">"친절한 선생님(15회), 재미있는 활동(12회)"</p>
-                                    <div className="flex justify-center my-1 text-gray-400">⬇</div>
-                                    <p className="font-bold text-orange-600">포스터 말풍선: "친절한 선생님과 함께해요!"</p>
+                            <SubPart number="4-2" title="NotebookLM 고급 활용: 데이터 기반 포스터">
+                                <div className="space-y-2">
+                                    <p className="text-sm"><strong>Step 1:</strong> NotebookLM에게 "작년 후기에서 긍정적 키워드 5개 뽑아줘" 요청</p>
+                                    <div className="bg-gray-50 p-2 rounded text-xs text-gray-600">
+                                        결과 예시: 1. 친절한 선생님(15회) 2. 재미있는 활동(12회) 3. 새 친구(10회)...
+                                    </div>
+                                    <p className="text-sm"><strong>Step 2:</strong> Gemini에게 "포스터에 '친절한 선생님', '새 친구를 만나요' 문구를 말풍선으로 넣어줘" 요청</p>
                                 </div>
                             </SubPart>
 
                             <SubPart number="4-3" title="계절별/행사별 템플릿 라이브러리">
-                                <div className="space-y-3 text-sm">
-                                    <div>
-                                        <span className="font-bold text-gray-700 block">🌸 봄/여름/가을/겨울</span>
-                                        <span className="text-gray-500">벚꽃(파스텔), 바다(민트), 단풍(브라운), 눈(레드&그린)</span>
-                                    </div>
-                                    <div>
-                                        <span className="font-bold text-gray-700 block">🎪 행사별 특화</span>
-                                        <span className="text-gray-500">가족 프로그램(화목함), 작가 초청(실루엣/빛), 토론회(원탁/말풍선)</span>
-                                    </div>
-                                </div>
+                                <ul className="space-y-2 text-sm text-gray-700">
+                                    <li className="flex items-center gap-2"><span className="text-xl">🌸</span> <strong>봄:</strong> 벚꽃, 개나리, 파스텔 핑크&옐로우</li>
+                                    <li className="flex items-center gap-2"><span className="text-xl">🏖️</span> <strong>여름:</strong> 바다, 야자수, 민트&블루</li>
+                                    <li className="flex items-center gap-2"><span className="text-xl">🍁</span> <strong>가을:</strong> 단풍, 은행잎, 오렌지&브라운</li>
+                                    <li className="flex items-center gap-2"><span className="text-xl">⛄</span> <strong>겨울:</strong> 눈, 크리스마스, 레드&그린</li>
+                                </ul>
                             </SubPart>
 
-                            <SubPart number="4-4" title="문제 해결 가이드 (Troubleshooting)">
-                                <div className="grid grid-cols-1 gap-2 text-sm">
-                                    <div className="flex items-start gap-2 bg-red-50 p-2 rounded">
-                                        <i className={`ph ${Icons.HelpCircle} text-red-500 mt-0.5 text-lg`}></i>
-                                        <div>
-                                            <span className="font-bold block text-red-700">이미지가 너무 복잡해요</span>
-                                            <span className="text-red-600 text-xs">→ "심플하게", "미니멀하게", "여백 많이" 추가</span>
-                                        </div>
+                            <SubPart number="4-4" title="문제 해결 가이드 (FAQ)">
+                                <div className="space-y-2">
+                                    <div className="bg-red-50 p-3 rounded border border-red-100">
+                                        <strong className="text-red-700 text-sm block">Q. 이미지가 너무 복잡해요</strong>
+                                        <span className="text-xs text-gray-600">A. "심플하게", "미니멀하게", "요소를 줄여서" 키워드 추가</span>
                                     </div>
-                                    <div className="flex items-start gap-2 bg-red-50 p-2 rounded">
-                                        <i className={`ph ${Icons.HelpCircle} text-red-500 mt-0.5 text-lg`}></i>
-                                        <div>
-                                            <span className="font-bold block text-red-700">색이 너무 어두워요</span>
-                                            <span className="text-red-600 text-xs">→ "밝은 파스텔톤", "햇살 가득한", "화사한" 추가</span>
-                                        </div>
+                                    <div className="bg-red-50 p-3 rounded border border-red-100">
+                                        <strong className="text-red-700 text-sm block">Q. 글씨가 잘 안 보여요</strong>
+                                        <span className="text-xs text-gray-600">A. "텍스트 공간 확보", "여백 많이", "배경 단순하게" 요청</span>
                                     </div>
-                                    <div className="flex items-start gap-2 bg-red-50 p-2 rounded">
-                                        <i className={`ph ${Icons.HelpCircle} text-red-500 mt-0.5 text-lg`}></i>
-                                        <div>
-                                            <span className="font-bold block text-red-700">한국적이지 않아요</span>
-                                            <span className="text-red-600 text-xs">→ "한국 초등학생", "한글 간판", "한국 도서관" 명시</span>
-                                        </div>
+                                    <div className="bg-red-50 p-3 rounded border border-red-100">
+                                        <strong className="text-red-700 text-sm block">Q. 한국적이지 않아요 (영어 간판 등)</strong>
+                                        <span className="text-xs text-gray-600">A. "한국 초등학생", "한글 간판", "한국 도서관" 명시</span>
                                     </div>
                                 </div>
                             </SubPart>
                         </Section>
 
-                        {/* Part 5 */}
-                        <Section title="Part 5: 실전 프로젝트" time="30분" iconClass={Icons.CheckCircle} color="purple">
-                            <div className="bg-white rounded-xl p-5 border-2 border-purple-100 mb-6">
-                                <div className="flex justify-between items-start mb-4">
-                                    <h3 className="font-bold text-lg text-purple-800">🎯 Final Mission: 2025 여름 독서 캠프</h3>
-                                    <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full font-bold">시나리오</span>
-                                </div>
-                                <div className="bg-gray-50 p-4 rounded-lg text-sm mb-4">
-                                    <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">📋 주어진 정보 (조건)</h4>
-                                    <ul className="grid grid-cols-2 gap-2 text-gray-600">
-                                        <li>• <strong>대상:</strong> 초등 3-6학년</li>
-                                        <li>• <strong>일시:</strong> 8월 5-9일</li>
-                                        <li>• <strong>특징:</strong> 1박 2일, 야외 독서</li>
-                                        <li>• <strong>컨셉:</strong> 캠프파이어, 별, 모험</li>
+                        {/* Part 5: Final Mission */}
+                        <Section title="Part 5: 실전 프로젝트" time="30분" icon="ph-flag-checkered" color="purple">
+                            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200 mb-6 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">FINAL MISSION</div>
+                                <h3 className="text-xl font-bold text-purple-900 mb-4 flex items-center gap-2">
+                                    🎯 미션: "2025 여름 독서 캠프" 포스터 만들기
+                                </h3>
+                                
+                                <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+                                    <h4 className="font-bold text-gray-700 border-b pb-2 mb-2 text-sm">📋 주어진 정보 (시나리오)</h4>
+                                    <ul className="grid grid-cols-2 gap-y-2 text-sm text-gray-600">
+                                        <li>• <strong>대상:</strong> 초등 3-6학년 (20명)</li>
+                                        <li>• <strong>일시:</strong> 8월 5-9일 (1박 2일)</li>
+                                        <li>• <strong>특징:</strong> 야외 독서 활동</li>
+                                        <li>• <strong>컨셉:</strong> 캠프파이어, 별, 모험, 우정</li>
                                     </ul>
                                 </div>
-                                <h4 className="font-bold text-gray-700 mb-2 text-sm">🚀 단계별 진행 가이드</h4>
-                                <div className="space-y-3 text-sm border-l-2 border-purple-200 pl-4">
-                                    <div>
-                                        <span className="text-purple-600 font-bold text-xs block">1. 기획 (NotebookLM)</span>
-                                        "초등 학부모가 보낼만한 홍보 포인트 5개 알려줘"
-                                    </div>
-                                    <div>
-                                        <span className="text-purple-600 font-bold text-xs block">2. 컨셉 (Gemini)</span>
-                                        "별이 빛나는 밤하늘, 텐트, 책 읽는 아이들 그림 그려줘"
-                                    </div>
-                                    <div>
-                                        <span className="text-purple-600 font-bold text-xs block">3. 완성 및 변환</span>
-                                        텍스트 배치 후 인스타 스토리용으로 리사이즈
+
+                                <div className="space-y-3">
+                                    <h4 className="font-bold text-gray-700 text-sm">🚀 단계별 진행 가이드:</h4>
+                                    <div className="flex flex-col gap-2 text-sm">
+                                        <div className="flex items-center gap-3 bg-white p-2 rounded border border-purple-100">
+                                            <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold">1. 기획</span>
+                                            <span className="text-gray-600">NotebookLM 질문: "학부모 어필 포인트 5개?"</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 bg-white p-2 rounded border border-purple-100">
+                                            <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold">2. 컨셉</span>
+                                            <span className="text-gray-600">Gemini: "별이 빛나는 밤, 텐트, 책 읽는 아이들 그려줘"</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 bg-white p-2 rounded border border-purple-100">
+                                            <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold">3. 완성</span>
+                                            <span className="text-gray-600">텍스트 배치 및 SNS 리사이즈 저장</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-gray-800 text-white p-5 rounded-xl">
-                                <h3 className="font-bold mb-3 flex items-center gap-2">
-                                    <i className={`ph ${Icons.CheckCircle} text-green-400 text-xl`}></i> 최종 점검 체크리스트
+                            {/* 체크리스트 */}
+                            <div className="bg-gray-800 text-white rounded-xl p-6 shadow-lg">
+                                <h3 className="font-bold mb-4 flex items-center gap-2 text-lg">
+                                    <Icon name="ph-check-square" className="text-green-400" /> 최종 미션 체크리스트
                                 </h3>
-                                <div className="space-y-2 text-sm">
-                                    <ChecklistItem text="NotebookLM에 자료 업로드 완료" checked={false} />
-                                    <ChecklistItem text="타겟 연령층 및 홍보 포인트 도출" checked={false} />
-                                    <ChecklistItem text="Gemini로 디자인 컨셉 및 색상 결정" checked={false} />
-                                    <ChecklistItem text="메인 이미지 생성 (3-4개 버전)" checked={false} />
-                                    <ChecklistItem text="텍스트 정보(일시, 장소 등) 확인" checked={false} />
-                                    <ChecklistItem text="SNS용/인쇄용 파일 저장" checked={false} />
+                                <div className="space-y-3">
+                                    {[
+                                        "NotebookLM에 도서관 자료 업로드 완료",
+                                        "홍보 포인트 및 타겟 연령층 결정",
+                                        "Gemini로 디자인 컨셉 & 색상 팔레트 결정",
+                                        "메인 이미지 생성 (3~4개 버전 확인)",
+                                        "텍스트 정보(오타 확인)가 포함된 포스터 완성",
+                                        "SNS용(인스타/스토리) 및 인쇄용 파일 저장"
+                                    ].map((item, idx) => (
+                                        <label key={idx} className="flex items-center gap-3 cursor-pointer hover:bg-gray-700 p-2 rounded transition-colors">
+                                            <input type="checkbox" className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500" />
+                                            <span className="text-sm md:text-base">{item}</span>
+                                        </label>
+                                    ))}
                                 </div>
-                                <button className="w-full mt-4 bg-purple-600 hover:bg-purple-500 py-3 rounded-lg font-bold transition-colors flex items-center justify-center gap-2">
-                                    <i className={`ph ${Icons.Download} text-lg`}></i> 체크리스트 다운로드
-                                </button>
                             </div>
                         </Section>
 
-                        {/* Footer */}
-                        <div className="mt-12 text-center pb-10 text-gray-500">
-                            <div className="inline-block p-4 bg-yellow-50 rounded-full mb-4 border border-yellow-200 shadow-sm">
-                                <p className="font-bold text-yellow-800 text-sm">🌟 "완벽한 첫 작품을 만들려 하지 마세요! 처음엔 60점도 성공입니다."</p>
+                        {/* Footer & Appendix */}
+                        <footer className="mt-12 pb-12 text-center">
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-8 text-left mx-auto max-w-3xl shadow-sm">
+                                <h3 className="font-bold text-yellow-800 mb-3 flex items-center gap-2">
+                                    <Icon name="ph-star" weight="fill" /> 부록: 꿀팁 모음
+                                </h3>
+                                <div className="grid md:grid-cols-3 gap-4 text-sm text-yellow-900">
+                                    <div>
+                                        <strong className="block mb-1">⏱️ 시간 절약</strong>
+                                        잘 나온 프롬프트는 메모장에 저장! 비슷한 포스터 만들 때 "같은 스타일로" 요청하기.
+                                    </div>
+                                    <div>
+                                        <strong className="block mb-1">🔄 수정보다는 재생성</strong>
+                                        작은 수정 여러 번보다, 설명을 보강해서 '새로 생성'하는 것이 빠릅니다.
+                                    </div>
+                                    <div>
+                                        <strong className="block mb-1">✨ 품질 향상</strong>
+                                        "Pinterest에서 본 OO 스타일처럼", "따뜻한/신나는" 감정 단어를 사용하세요.
+                                    </div>
+                                </div>
                             </div>
-                            <p className="text-xs">© AI Library Poster Master Class</p>
-                        </div>
+
+                            <div className="text-gray-500">
+                                <h3 className="text-xl font-bold text-gray-700 mb-2">🎓 과정을 수료하신 것을 축하합니다!</h3>
+                                <p className="mb-4">"완벽한 첫 작품을 만들려 하지 마세요. 처음엔 60점도 성공입니다."</p>
+                                <p className="text-xs opacity-60">Based on uploaded material: 🎨 AI로 만드는 우리 도서관 포스터.docx</p>
+                            </div>
+                        </footer>
+
                     </main>
+
+                    {/* Floating Scroll to Top */}
+                    <button 
+                        onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}
+                        className="fixed bottom-6 right-6 bg-indigo-600 text-white p-3 rounded-full shadow-lg hover:bg-indigo-700 transition-colors z-50"
+                        title="맨 위로"
+                    >
+                        <Icon name="ph-arrow-up" weight="bold" />
+                    </button>
                 </div>
             );
         }
